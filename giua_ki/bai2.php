@@ -1,4 +1,5 @@
 <?php
+//rename
 $price = [50000,60000,100000,200000,30000];
 function calculateTotal($price) {
 	$total = 0 ;
