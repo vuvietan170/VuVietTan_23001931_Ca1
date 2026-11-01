@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 9. Form submit.prevent -->
+    <form @submit.prevent="daDat = true">
+      <!-- 1. v-model.trim -->
+      Họ tên: <input type="text" v-model.trim="hoTen"><br><br>
+
+      <!-- 2. Select suất chiếu -->
+      Suất chiếu: 
+      <select v-model="suatChieu">
+        <option value="14:00">10:37</option>
+        <option value="17:00">06:50</option>
+        <option value="20:00">19:00</option>
+      </select><br><br>
+
+      <!-- 3. Radio giá vé -->
+      Loại vé: 
+      <label><input type="radio" :value="70000" v-model.number="giaVe"> Vé thường (70k)</label>
+      <label><input type="radio" :value="100000" v-model.number="giaVe"> Vé VIP (100k)</label><br><br>
+
+      <!-- 4 & 7. Số lượng vé & tăng/giảm -->
+      Số lượng: 
+      <button type="button" @click="soLuong > 1 && soLuong--">-</button>
+      <input type="number" v-model.number="soLuong" style="width: 40px;">
+      <button type="button" @click="soLuong < 10 && soLuong++">+</button><br><br>
+
+      <!-- 5. Combo bắp nước -->
+      <label><input type="checkbox" v-model="combo"> Combo bắp nước (45.000đ)</label><br><br>
+
+      <!-- 6. Computed tổng tiền -->
+      <p><strong>Tổng tiền: {{ tongTien.toLocaleString() }} VNĐ</strong></p>
+
+      <!-- 8. Nút đặt vé disabled & Nút đặt lại -->
+      <button type="submit" :disabled="!isValid">Đặt vé</button>
+      <button type="button" @click="resetForm">Đặt lại</button>
+    </form>
+
+    <!-- 9. Xác nhận đặt vé thành công -->
+    <div v-if="daDat" style="margin-top: 15px; border: 1px solid green; padding: 10px;">
+      <h3>Xác Nhận Đặt Vé</h3>
+      <p>Khách hàng: {{ hoTen }} | Suất: {{ suatChieu }}</p>
+      <p>Loại vé: {{ giaVe === 100000 ? 'VIP' : 'Thường' }} | SL: {{ soLuong }}</p>
+      <p>Combo: {{ combo ? 'Có' : 'Không' }}</p>
+      <p><strong>Thanh toán: {{ tongTien.toLocaleString() }} VNĐ</strong></p>
+    </div>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          hoTen: '',
+          suatChieu: '14:00',
+          giaVe: 70000,
+          soLuong: 1,
+          combo: false,
+          daDat: false
+        }
+      },
+      computed: {
+        // 6. Tính tổng tiền
+        tongTien() {
+          return (this.giaVe * this.soLuong) + (this.combo ? 45000 : 0);
+        },
+        // 8. Ràng buộc validate
+        isValid() {
+          return this.hoTen !== '' && Number.isInteger(this.soLuong) && this.soLuong >= 1 && this.soLuong <= 10;
+        }
+      },
+      methods: {
+        // 7. Đặt lại form
+        resetForm() {
+          this.hoTen = '';
+          this.suatChieu = '14:00';
+          this.giaVe = 70000;
+          this.soLuong = 1;
+          this.combo = false;
+          this.daDat = false;
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

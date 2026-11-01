@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 3. v-bind ảnh & alt -->
+    <img :src="avatar" :alt="hoTen" width="100"><br>
+
+    <!-- 2. {{ }} cho họ tên, v-text cho lớp -->
+    <h2>Họ tên: {{ hoTen }}</h2>
+    <p>Mã SV: {{ maSV }}</p>
+    <p>Lớp: <span v-text="lop"></span></p>
+
+    <!-- 4 & 5. Xếp loại & đổi màu style -->
+    <p>
+      ĐTB: {{ dtb }} - Xếp loại: 
+      <span :style="{ color: dtb >= 8 ? 'green' : dtb >= 6.5 ? 'blue' : dtb >= 5 ? 'orange' : 'red', fontWeight: 'bold' }">
+        <template v-if="dtb >= 8">Giỏi</template>
+        <template v-else-if="dtb >= 6.5">Khá</template>
+        <template v-else-if="dtb >= 5">Trung bình</template>
+        <template v-else>Chưa đạt</template>
+      </span>
+    </p>
+
+    <!-- 6. Trạng thái -->
+    <p>Trạng thái: {{ dangHoc ? 'Đang học' : 'Đã nghỉ' }}</p>
+
+    <!-- 7. v-show bật/tắt giới thiệu -->
+    <button @click="hienGioiThieu = !hienGioiThieu">Bật/tắt giới thiệu</button>
+    <p v-show="hienGioiThieu">Giới thiệu: Sinh viên khoa Công nghệ thông tin.</p>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          maSV: 'SV01',
+          hoTen: 'Nguyễn Văn A',
+          lop: 'CNTT-K65',
+          avatar: 'https://via.placeholder.com/100',
+          dtb: 7.5,
+          dangHoc: true,
+          hienGioiThieu: true
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

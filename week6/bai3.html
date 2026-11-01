@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h2>Quản Lý Công Việc</h2>
+
+    <!-- 2 & 3. Thêm bằng enter / nút thêm, chống rỗng -->
+    <input type="text" v-model="tenMoi" @keyup.enter="them" placeholder="Tên công việc...">
+    <button @click="them">Thêm</button><br><br>
+
+    <!-- 7. Bộ lọc -->
+    <button v-for="st in ['Tất cả', 'Chưa hoàn thành', 'Đã hoàn thành']" @click="boLoc = st">
+      {{ st }}
+    </button>
+
+    <!-- 8. Thống kê computed -->
+    <p>Tổng: {{ tongSo }} | Chưa hoàn thành: {{ soChuaXong }}</p>
+
+    <!-- 4 & 5. v-for với key=id, checkbox & gạch ngang -->
+    <ul v-if="danhSachLoc.length > 0">
+      <li v-for="item in danhSachLoc" :key="item.id">
+        <input type="checkbox" v-model="item.hoanThanh">
+        <span :style="{ textDecoration: item.hoanThanh ? 'line-through' : 'none' }">{{ item.ten }}</span>
+        <!-- 6. Xóa từng việc -->
+        <button @click="xoa(item.id)">Xóa</button>
+      </li>
+    </ul>
+
+    <!-- 10. Thông báo khi rỗng -->
+    <p v-else>Không có công việc nào!</p>
+
+    <!-- 9. Xóa việc đã hoàn thành -->
+    <button v-if="coViecDaXong" @click="xoaDaHoanThanh">Xóa các việc đã hoàn thành</button>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          tenMoi: '',
+          boLoc: 'Tất cả',
+          danhSach: [
+            { id: 1, ten: 'Làm bài tập Vue', hoanThanh: false }
+          ]
+        }
+      },
+      computed: {
+        tongSo() { return this.danhSach.length; },
+        soChuaXong() { return this.danhSach.filter(i => !i.hoanThanh).length; },
+        coViecDaXong() { return this.danhSach.some(i => i.hoanThanh); },
+        danhSachLoc() {
+          if (this.boLoc === 'Chưa hoàn thành') return this.danhSach.filter(i => !i.hoanThanh);
+          if (this.boLoc === 'Đã hoàn thành') return this.danhSach.filter(i => i.hoanThanh);
+          return this.danhSach;
+        }
+      },
+      methods: {
+        them() {
+          if (this.tenMoi.trim() === '') return;
+          this.danhSach.push({ id: Date.now(), ten: this.tenMoi.trim(), hoanThanh: false });
+          this.tenMoi = '';
+        },
+        xoa(id) {
+          this.danhSach = this.danhSach.filter(i => i.id !== id);
+        },
+        xoaDaHoanThanh() {
+          this.danhSach = this.danhSach.filter(i => !i.hoanThanh);
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
