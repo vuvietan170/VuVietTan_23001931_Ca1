@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Thực hành Vue 3 - MVP</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <header class="top">
+            <div>
+                <h1>Vue 3 · Thực hành 7</h1>
+                <p>Ứng dụng quản lý sản phẩm và giỏ hàng · CDN</p>
+            </div><span class="status">{{ status }}</span>
+        </header>
+        <nav><button v-for="tab in tabs" :key="tab.id" :class="{active:activeTab===tab.id}"
+                @click="activeTab=tab.id">{{tab.label}}</button></nav>
+        <main>
+            <section v-show="activeTab===1">
+                <div class="heading">
+                    <div>
+                        <h2>Bài 1 · Quản lý sản phẩm</h2>
+                        <p>Tìm kiếm, lọc, sắp xếp và thống kê tồn kho</p>
+                    </div>
+                </div>
+                <div class="panel filters"><label>Tìm kiếm<input v-model="keyword"
+                            placeholder="Nhập tên sản phẩm..."></label><label>Danh mục<select v-model="category">
+                            <option value="">Tất cả danh mục</option>
+                            <option v-for="c in categories" :key="c">{{c}}</option>
+                        </select></label><label>Sắp xếp<select v-model="sortOrder">
+                            <option value="none">Mặc định</option>
+                            <option value="asc">Giá tăng dần</option>
+                            <option value="desc">Giá giảm dần</option>
+                        </select></label></div>
+                <p v-if="searchWarning" class="warning">{{searchWarning}}</p>
+                <div class="stats">
+                    <div class="stat"><span>Đang hiển thị</span><strong>{{filteredProducts.length}} /
+                            {{products.length}}</strong></div>
+                    <div class="stat"><span>Giá trị tồn kho (đang hiển
+                            thị)</span><strong>{{money(visibleStockValue)}}</strong></div>
+                </div>
+                <div class="panel">
+                    <h3>Thêm sản phẩm</h3>
+                    <form class="add-form" @submit.prevent="addProduct"><label>Tên<input v-model="newProduct.name"
+                                placeholder="Tên sản phẩm"></label><label>Giá (VNĐ)<input type="number"
+                                v-model.number="newProduct.price" min="0" placeholder="Giá"></label><label>Danh
+                            mục<select v-model="newProduct.category">
+                                <option v-for="c in categories" :key="c">{{c}}</option>
+                            </select></label><label>Tồn kho<input type="number" v-model.number="newProduct.stock"
+                                min="0" placeholder="Số lượng"></label><button class="primary" type="submit">+
+                            Thêm</button></form>
+                    <p class="error" v-if="formError">{{formError}}</p>
+                </div>
+                <div class="panel table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Đơn giá</th>
+                                <th>Tồn kho</th>
+                                <th>Trạng thái</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="p in filteredProducts" :key="p.id">
+                                <td>#{{p.id}}</td>
+                                <td><b>{{p.name}}</b></td>
+                                <td>{{p.category}}</td>
+                                <td>{{money(p.price)}}</td>
+                                <td>{{p.stock}}</td>
+                                <td><span class="pill" :class="p.stock>0?'ok':'out'">{{p.stock>0?'Còn hàng':'Hết
+                                        hàng'}}</span></td>
+                                <td><button class="danger" @click="removeProduct(p.id)">Xóa</button></td>
+                            </tr>
+                            <tr v-if="!filteredProducts.length">
+                                <td colspan="7" class="empty">Không có sản phẩm phù hợp</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section v-show="activeTab===2">
+                <div class="heading">
+                    <div>
+                        <h2>Bài 2 · Danh mục sản phẩm</h2>
+                        <p>Component độc lập, props và trạng thái mô tả riêng</p>
+                    </div>
+                </div>
+                <div class="product-grid"><the-san-pham v-for="p in catalog" :key="p.id" :ten="p.name" :gia="p.price"
+                        :anh="p.image" :mo-ta="p.description" :so-luong-ton="p.stock"
+                        @mua="buyCatalog(p)"></the-san-pham></div>
+                <p class="hint">Nút Mua thêm sản phẩm vào giỏ hàng của Bài 3.</p>
+            </section>
+            <section v-show="activeTab===3">
+                <div class="heading">
+                    <div>
+                        <h2>Bài 3 · Giỏ hàng</h2>
+                        <p>Props truyền xuống, $emit gửi sự kiện lên component cha</p>
+                    </div>
+                </div>
+                <div class="panel table-wrap">
+                    <table v-if="cart.length">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody><dong-gio-hang v-for="item in cart" :key="item.id" :san-pham="item"
+                                @doi-so-luong="updateQuantity" @yeu-cau-xoa="removeCartItem"></dong-gio-hang></tbody>
+                    </table>
+                    <div v-else class="empty">Giỏ hàng trống</div>
+                </div>
+                <div class="stats">
+                    <div class="stat"><span>Tổng số lượng</span><strong>{{totalQuantity}}</strong></div>
+                    <div class="stat"><span>Tổng tiền</span><strong>{{money(totalPrice)}}</strong></div>
+                </div>
+                <p class="hint">Dữ liệu kiểm tra ban đầu: 2 bút × 5.000đ + 3 vở × 12.000đ = 46.000đ.</p>
+            </section>
+        </main>
+        <div class="toast" v-if="toast">{{toast}}</div>
+    </div>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="components/TheSanPham.js"></script>
+    <script src="components/DongGioHang.js"></script>
+    <script src="js/bai1.js"></script>
+    <script src="js/bai2.js"></script>
+    <script src="js/bai3.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
