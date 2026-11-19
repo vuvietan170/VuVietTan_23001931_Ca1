@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tuần 9 - Quản lý sản phẩm</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 32px auto; padding: 0 16px; color: #222; }
+    [v-cloak] { display: none; }
+    form { padding: 16px; border: 1px solid #ccc; margin-bottom: 16px; }
+    .fields { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    label { display: grid; gap: 6px; }
+    input, button { font: inherit; padding: 8px; }
+    button { cursor: pointer; }
+    button:disabled { cursor: default; }
+    .preview { display: block; max-width: 140px; max-height: 120px; margin: 12px 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background: #eee; }
+    td img { width: 64px; height: 64px; object-fit: contain; }
+    .pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .message { padding: 12px; background: #eef3ff; }
+  </style>
+</head>
+<body>
+  <main id="app" v-cloak>
+    <h1>Quản lý sản phẩm</h1>
+    <form @submit.prevent="save">
+      <h2>{{ editingId === null ? 'Thêm sản phẩm' : 'Sửa sản phẩm #' + editingId }}</h2>
+      <div class="fields">
+        <label>Tên sản phẩm
+          <input v-model="form.name" required maxlength="100" :disabled="busy || pendingUpload">
+        </label>
+        <label>Đơn giá (đ)
+          <input v-model.number="form.price" type="number" min="1" max="2147483647" step="1" required :disabled="busy || pendingUpload">
+        </label>
+        <label>Tồn kho
+          <input v-model.number="form.stock" type="number" min="0" max="2147483647" step="1" required :disabled="busy || pendingUpload">
+        </label>
+      </div>
+      <label>Ảnh sản phẩm (JPG, JPEG, PNG; tối đa 2 MB; không bắt buộc)
+        <input ref="imageInput" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" @change="chooseImage" :disabled="busy">
+      </label>
+      <img v-if="preview" :src="preview" class="preview" alt="Xem trước ảnh sản phẩm">
+      <p v-if="pendingUpload">Thông tin đã được lưu. Chọn lại ảnh nếu cần và bấm Thử lại upload.</p>
+      <button type="submit" :disabled="busy || pendingUpload">{{ editingId === null ? 'Thêm' : 'Lưu sửa' }}</button>
+      <button v-if="pendingUpload" type="button" @click="retryUpload" :disabled="busy || !selectedFile">Thử lại upload</button>
+      <button v-if="editingId !== null" type="button" @click="reset" :disabled="busy">{{ pendingUpload ? 'Đóng' : 'Hủy' }}</button>
+    </form>
+
+    <p v-if="message" class="message" role="status">{{ message }}</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ảnh</th><th>Tên sản phẩm</th><th>Đơn giá</th><th>Tồn kho</th><th>Thao tác</th></tr></thead>
+        <tbody>
+          <tr v-for="p in products" :key="p.id">
+            <td><img v-if="p.image" :src="p.image" :alt="p.name"><span v-else>Chưa có ảnh</span></td>
+            <td>{{ p.name }}</td>
+            <td>{{ Number(p.price).toLocaleString('vi-VN') }} đ</td>
+            <td>{{ p.stock }}</td>
+            <td>
+              <button @click="edit(p)" :disabled="busy || loading || pendingUpload">Sửa</button>
+              <button @click="remove(p.id)" :disabled="busy || loading || pendingUpload">Xóa</button>
+            </td>
+          </tr>
+          <tr v-if="!products.length"><td colspan="5">{{ loading ? 'Đang tải...' : 'Chưa có sản phẩm' }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button @click="load(pagination.page - 1)" :disabled="busy || loading || pagination.page <= 1">Trước</button>
+      <span>Trang {{ pagination.page }} / {{ pagination.total_pages }} — Tổng {{ pagination.total }} sản phẩm</span>
+      <button @click="load(pagination.page + 1)" :disabled="busy || loading || pagination.page >= pagination.total_pages">Sau</button>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
